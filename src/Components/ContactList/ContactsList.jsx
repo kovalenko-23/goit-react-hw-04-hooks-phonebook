@@ -1,6 +1,6 @@
-import ContactsItem from "../ContactsItem/ContactsItem";
-import { List } from "./ContactList.styled";
-import PropTypes from "prop-types";
+import ContactsItem from '../ContactsItem/ContactsItem';
+import { List } from './ContactList.styled';
+import PropTypes from 'prop-types';
 
 const ContactsList = ({ contacts, onDeleteButton }) => {
   return (
@@ -27,6 +27,6 @@ ContactsList.propTypes = {
       id: PropTypes.string,
       name: PropTypes.string,
       number: PropTypes.string,
-    })
+    }),
   ),
 };

@@ -1,11 +1,11 @@
-import { Component } from "react";
-import shortid from "shortid";
-import styled from "@emotion/styled";
-import ContactsForm from "./Components/ContactsForm/ContactsForm";
-import ContactsList from "./Components/ContactList/ContactsList";
-import { ContactsFilter } from "./Components/ContactsFilter/ContactsFilter";
+import { useEffect, useState } from 'react';
+import shortid from 'shortid';
+import styled from '@emotion/styled';
+import ContactsForm from './Components/ContactsForm/ContactsForm';
+import ContactsList from './Components/ContactList/ContactsList';
+import { ContactsFilter } from './Components/ContactsFilter/ContactsFilter';
 import toast, { Toaster } from 'react-hot-toast';
-import { FaBan } from "react-icons/fa";
+import { FaBan } from 'react-icons/fa';
 
 const Wrapper = styled.div`
   padding-left: 15px;
@@ -14,32 +14,28 @@ const Wrapper = styled.div`
   margin-right: auto;
 `;
 
-export class App extends Component {
-  state = {
-    contacts: [ ],
-    filter: "",
-  };
+const useLocalStorage = (key, defaultValue) => {
+  const [state, setState] = useState(() => {
+    return JSON.parse(window.localStorage.getItem(key)) ?? defaultValue;
+  });
 
-  componentDidMount() {
-    const contacts = localStorage.getItem('contacts');
-    const parsedContacts = JSON.parse(contacts);
+  useEffect(() => {
+    window.localStorage.setItem(key, JSON.stringify(state));
+  }, [key, state]);
 
-    if (parsedContacts) {
-      this.setState({contacts: parsedContacts})
-    }
-  }
+  return [state, setState];
+};
 
-  componentDidUpdate(prevProps, prevState) {
-    if (prevState !== this.state) {
-      localStorage.setItem('contacts', JSON.stringify(this.state.contacts))
-    }
- }
+export function App() {
+  const [contacts, setContacts] = useLocalStorage('contacts', '');
+  const [filter, setFilter] = useState('');
 
-  handleOnSubmitForm = ({ name, number }) => {
-    const contactsName = this.state.contacts.map((contact) => contact.name);
-
+  const handleOnSubmitForm = (name, number) => {
+    const contactsName = contacts.map(contact => contact.name);
     if (contactsName.includes(name)) {
-      toast.error(`You already have ${name} in your contacts!`, { icon: <FaBan fill='red'/>});
+      toast.error(`You already have ${name} in your contacts!`, {
+        icon: <FaBan fill="red" />,
+      });
     } else {
       const newContact = {
         id: shortid.generate(),
@@ -47,51 +43,38 @@ export class App extends Component {
         number,
       };
 
-      this.setState(({ contacts }) => ({
-        contacts: [newContact, ...contacts],
-      }));
-      
-      toast.success(`${name} added to your contacts!`)
+      setContacts(contacts => [newContact, ...contacts]);
+      toast.success(`${name} added to your contacts!`);
     }
   };
 
-  hendleFinder = (event) => {
-    this.setState({ filter: event.currentTarget.value });
+  const hendleFinder = event => {
+    setFilter(event.currentTarget.value);
   };
 
-  deleteContact = (id, name) => {
-    this.setState((prevState) => ({
-      contacts: prevState.contacts.filter((contact) => contact.id !== id),
-    }));
-    toast.success(`${name} removed from your contacts`)
+  const deleteContact = (id, name) => {
+    const filteredContacts = contacts.filter(contact => contact.id !== id);
+    setContacts(filteredContacts);
+    toast.success(`${name} removed from your contacts`);
   };
 
-  getVisibleContacts = () => {
-    const { contacts, filter } = this.state;
-    const normalizedFilter = filter.toLocaleLowerCase();
+  const getVisibleContacts = contacts.filter(contact =>
+    contact.name.toLowerCase().includes(filter),
+  );
 
-    return contacts.filter((contact) =>
-      contact.name.toLocaleLowerCase().includes(normalizedFilter)
-    );
-  };
-
-  render() {
-    const visibleContacts = this.getVisibleContacts();
-
-    return (
-      <Wrapper>
-        <Toaster/>
-        <h1>Phonebook</h1>
-        <ContactsForm onSubmit={this.handleOnSubmitForm} />
-        <h2>Contacts</h2>
-        <ContactsFilter value={this.filter} onChange={this.hendleFinder} />
-        <ContactsList
-          contacts={visibleContacts}
-          onDeleteButton={this.deleteContact}
-        />
-      </Wrapper>
-    );
-  }
+  return (
+    <Wrapper>
+      <Toaster />
+      <h1>Phonebook</h1>
+      <ContactsForm onSubmit={handleOnSubmitForm} />
+      <h2>Contacts</h2>
+      <ContactsFilter value={filter} onChange={hendleFinder} />
+      <ContactsList
+        contacts={getVisibleContacts}
+        onDeleteButton={deleteContact}
+      />
+    </Wrapper>
+  );
 }
 
 export default App;
