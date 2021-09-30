@@ -8,8 +8,8 @@ import toast, { Toaster } from 'react-hot-toast';
 import { FaBan } from 'react-icons/fa';
 
 const Wrapper = styled.div`
-  padding-left: 15px;
-  padding-right: 15px;
+  padding-left: 16px;
+  padding-right: 16px;
   margin-left: auto;
   margin-right: auto;
 `;
